@@ -12,7 +12,6 @@ RUN --mount=type=cache,target=/root/.npm \
 
 # Copy application source (excluding .env and files in .dockerignore)
 FROM base AS app-src
-# Copy from subdirectory instead of root
 COPY --link cosmetics-catalog/ .
 
 # Final production image
