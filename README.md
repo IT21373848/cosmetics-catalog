@@ -20,7 +20,7 @@ This will:
 - Use environment variables from `./cosmetics-catalog/.env` if the file exists
 
 ### Configuration
-- The service runs as a non-root user for security
+- The service runs as a non-root user for securit
 - Environment variables can be set in `./cosmetics-catalog/.env`
 - The service is attached to the `app-net` Docker network
 
