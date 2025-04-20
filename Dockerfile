@@ -6,7 +6,7 @@ WORKDIR /app
 # Install dependencies in a separate stage for caching
 FROM base AS deps
 # Copy only package files for dependency installation
-COPY --link package.json package-lock.json ./
+COPY --link cosmetics-catalog/package.json cosmetics-catalog/package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --production
 
