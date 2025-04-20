@@ -43,7 +43,7 @@ jobs:
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: task-definition.json
-          container-name: cosmetics-app  # Make sure this matches your container name
+          container-name: cosmetics-app
           image: ${{ steps.build-image.outputs.image }}
 
       - name: Deploy to Amazon ECS
@@ -51,5 +51,5 @@ jobs:
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           service: cosmetics-service
-          cluster: cosmetics-cluster
+          cluster: cosmetics-cluster1
           wait-for-service-stability: true
