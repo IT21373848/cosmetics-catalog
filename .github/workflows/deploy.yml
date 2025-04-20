@@ -36,7 +36,7 @@ jobs:
 
       - name: Download task definition
         run: |
-          aws ecs describe-task-definition --task-definition cosmetics-catalog --query taskDefinition > task-definition.json
+          aws ecs describe-task-definition --task-definition Taskdefinition --query taskDefinition > task-definition.json
 
       - name: Update task definition with new image
         id: task-def
