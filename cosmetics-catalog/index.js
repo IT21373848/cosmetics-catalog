@@ -15,14 +15,13 @@ app.use(express.json());
 app.use('/api/products', productRoutes);
 
 // DB connection
-connection = mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('MongoDB Connected');
+    app.listen(PORT, () => {
+      console.log(`🚀 Server is running on http://localhost:${PORT}`);
+    });
   })
   .catch((err) => {
-    console.error('MongoDB connection error:', err)
-  });
-
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    console.error('MongoDB connection error:', err);
   });
