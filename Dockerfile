@@ -3,9 +3,8 @@
     WORKDIR /app
     
     # Copy package files from the nested directory
-    COPY cosmetics-catalog/package*.json ./
+    COPY cosmetics-catalog/package.json cosmetics-catalog/package-lock.json ./
     
-    # Ensure both package.json and package-lock.json are in sync
     # Install dependencies (use --omit=dev to exclude dev dependencies)
     RUN npm ci --omit=dev
     
