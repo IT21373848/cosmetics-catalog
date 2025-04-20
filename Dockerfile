@@ -1,18 +1,18 @@
 # ----- Build Stage -----
-    FROM node:16-alpine AS builder
+    FROM node:18-alpine AS builder
     WORKDIR /app
     
     # Copy package files from the nested directory
     COPY cosmetics-catalog/package*.json ./
     
-    # Install dependencies
-    RUN npm ci --only=production
+    # Install dependencies (use --omit=dev instead of --only=production)
+    RUN npm ci --omit=dev
     
     # Copy application source from nested directory
     COPY cosmetics-catalog/ ./
     
     # ----- Production Stage -----
-    FROM node:16-alpine
+    FROM node:18-alpine
     WORKDIR /app
     
     # Copy built app from builder
