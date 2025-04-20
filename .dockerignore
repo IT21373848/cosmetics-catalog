@@ -1,5 +1,65 @@
-node_modules
+# Node.js dependencies
+node_modules/
 npm-debug.log
+yarn-debug.log
+
+# Version control
+.git/
+.gitignore
+
+# IDE/editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build and output directories
+dist/
+build/
+out/
+
+# Test and debug artifacts
+test/
+tests/
+debug/
+*.log
+
+# Temporary and local files
+tmp/
+temp/
+*.tmp
+.local/
+local/
+
+# Environment and secrets
 .env
-.git
-README.md
+.env.*
+*.env
+*.pem
+*.key
+*.crt
+
+# Documentation and markdown
+README*
+*.md
+docs/
+
+# Docker and compose files
+Dockerfile*
+docker-compose*
+
+# Backup and old files
+*.bak
+
+# Project-specific: skip swagger cache or generated files if any
+# (none detected, but add pattern if needed)
+
+# Miscellaneous
+*.DS_Store
+
+# Exclude any other hidden folders (except .github)
+.*
+!.github/
+
+# Exclude .dockerignore itself from being ignored
+!.dockerignore
