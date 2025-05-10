@@ -47,27 +47,36 @@ jobs:
           SERVICE_NAME=service-1
           CONTAINER_NAME=catalog
           REGION=ap-southeast-1
-          IMAGE_URI=061747058342.dkr.ecr.ap-southeast-1.amazonaws.com/name:latest
-
-          # Get current task definition
-          TASK_DEF=$(aws ecs describe-task-definition --task-definition $FAMILY_NAME)
-
-          # Create new task definition with updated image
-          NEW_TASK_DEF=$(echo $TASK_DEF | \
-            jq --arg IMAGE "$IMAGE_URI" --arg CONTAINER "$CONTAINER_NAME" \
-            '.taskDefinition | {
+          IMAGE_URI=***.dkr.ecr.ap-southeast-1.amazonaws.com/name:latest
+          
+          # Save current task definition to a file
+          aws ecs describe-task-definition \
+            --task-definition $FAMILY_NAME \
+            --region $REGION > old-task-def.json
+          
+          # Extract and update the task definition JSON
+          jq --arg IMAGE "$IMAGE_URI" --arg CONTAINER "$CONTAINER_NAME" '
+            .taskDefinition |
+            {
               family: .family,
               executionRoleArn: .executionRoleArn,
               networkMode: .networkMode,
-              containerDefinitions: [.containerDefinitions[] | 
-                if .name == $CONTAINER then .image = $IMAGE else . end],
+              containerDefinitions: [.containerDefinitions[] | if .name == $CONTAINER then (.image = $IMAGE) else . end],
               requiresCompatibilities: .requiresCompatibilities,
               cpu: .cpu,
               memory: .memory
-            }')
-
-          # Register new task definition
-          NEW_REVISION=$(echo "$NEW_TASK_DEF" | aws ecs register-task-definition --cli-input-json file:///dev/stdin | jq -r '.taskDefinition.taskDefinitionArn')
-
-          # Update ECS service to use new task definition
-          aws ecs update-service --cluster $CLUSTER_NAME --service $SERVICE_NAME --task-definition $NEW_REVISION
+            }
+          ' old-task-def.json > new-task-def.json
+          
+          # Register the new task definition
+          NEW_REVISION=$(aws ecs register-task-definition \
+            --region $REGION \
+            --cli-input-json file://new-task-def.json \
+            | jq -r '.taskDefinition.taskDefinitionArn')
+          
+          # Update the ECS service to use the new revision
+          aws ecs update-service \
+            --cluster $CLUSTER_NAME \
+            --service $SERVICE_NAME \
+            --region $REGION \
+            --task-definition $NEW_REVISION
