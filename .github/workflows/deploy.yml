@@ -40,19 +40,33 @@ jobs:
           docker tag $IMAGE_NAME:$IMAGE_TAG $ECR_URI:$IMAGE_TAG
           docker push $ECR_URI:$IMAGE_TAG
 
-      - name: Deploy on EC2 via SSH
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            aws ecr get-login-password --region ap-southeast-1 | \
-            docker login --username AWS --password-stdin 061747058342.dkr.ecr.ap-southeast-1.amazonaws.com
+      - name: Deploy to ECS
+        run: |
+          
+          CLUSTER_NAME=slit
+          CONTAINER_NAME=catalog
+          REGION=ap-southeast-1
+          IMAGE_URI=061747058342.dkr.ecr.ap-southeast-1.amazonaws.com/name:latest
 
-            docker pull 061747058342.dkr.ecr.ap-southeast-1.amazonaws.com/name:latest
+          # Get current task definition
+          TASK_DEF=$(aws ecs describe-task-definition --task-definition $FAMILY_NAME)
 
-            docker stop app || true
-            docker rm app || true
+          # Create new task definition with updated image
+          NEW_TASK_DEF=$(echo $TASK_DEF | \
+            jq --arg IMAGE "$IMAGE_URI" --arg CONTAINER "$CONTAINER_NAME" \
+            '.taskDefinition | {
+              family: .family,
+              executionRoleArn: .executionRoleArn,
+              networkMode: .networkMode,
+              containerDefinitions: [.containerDefinitions[] | 
+                if .name == $CONTAINER then .image = $IMAGE else . end],
+              requiresCompatibilities: .requiresCompatibilities,
+              cpu: .cpu,
+              memory: .memory
+            }')
 
-            docker run -d --name app -p 80:80 061747058342.dkr.ecr.ap-southeast-1.amazonaws.com/name:latest
+          # Register new task definition
+          NEW_REVISION=$(echo "$NEW_TASK_DEF" | aws ecs register-task-definition --cli-input-json file:///dev/stdin | jq -r '.taskDefinition.taskDefinitionArn')
+
+          # Update ECS service to use new task definition
+          aws ecs update-service --cluster $CLUSTER_NAME --service $SERVICE_NAME --task-definition $NEW_REVISION
