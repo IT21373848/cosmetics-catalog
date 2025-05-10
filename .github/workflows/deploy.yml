@@ -47,7 +47,8 @@ jobs:
           SERVICE_NAME=service-1
           CONTAINER_NAME=catalog
           REGION=ap-southeast-1
-          IMAGE_URI=***.dkr.ecr.ap-southeast-1.amazonaws.com/name:latest
+          IMAGE_URI=061747058342.dkr.ecr.ap-southeast-1.amazonaws.com/name:latest
+
           
           # Save current task definition to a file
           aws ecs describe-task-definition \
