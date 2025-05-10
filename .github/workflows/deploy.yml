@@ -3,14 +3,14 @@ name: Deploy to Amazon ECS
 on:
   push:
     branches:
-      - main  # Change if using a different branch for deployment
+      - main  # Change to your deployment branch if needed
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout source code
         uses: actions/checkout@v3
 
       - name: Configure AWS credentials
@@ -25,24 +25,34 @@ jobs:
           aws ecr get-login-password --region ap-southeast-1 | \
           docker login --username AWS --password-stdin 061747058342.dkr.ecr.ap-southeast-1.amazonaws.com
 
+      - name: Ensure ECR repository exists
+        run: |
+          aws ecr describe-repositories --repository-names name || \
+          aws ecr create-repository --repository-name name
+
       - name: Build, tag, and push Docker image
         env:
           IMAGE_NAME: product
           IMAGE_TAG: latest
-          ECR_REPO: 061747058342.dkr.ecr.ap-southeast-1.amazonaws.com/name
+          ECR_URI: 061747058342.dkr.ecr.ap-southeast-1.amazonaws.com/name
         run: |
           docker build -t $IMAGE_NAME:$IMAGE_TAG .
-          docker tag $IMAGE_NAME:$IMAGE_TAG $ECR_REPO:$IMAGE_TAG
-          docker push $ECR_REPO:$IMAGE_TAG
+          docker tag $IMAGE_NAME:$IMAGE_TAG $ECR_URI:$IMAGE_TAG
+          docker push $ECR_URI:$IMAGE_TAG
 
-      - name: Deploy to EC2 via SSH
+      - name: Deploy on EC2 via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            docker login --username AWS --password $(aws ecr get-login-password --region ap-southeast-1) 061747058342.dkr.ecr.ap-southeast-1.amazonaws.com
+            aws ecr get-login-password --region ap-southeast-1 | \
+            docker login --username AWS --password-stdin 061747058342.dkr.ecr.ap-southeast-1.amazonaws.com
+
             docker pull 061747058342.dkr.ecr.ap-southeast-1.amazonaws.com/name:latest
-            docker stop app || true && docker rm app || true
+
+            docker stop app || true
+            docker rm app || true
+
             docker run -d --name app -p 80:80 061747058342.dkr.ecr.ap-southeast-1.amazonaws.com/name:latest
