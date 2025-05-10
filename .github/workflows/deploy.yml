@@ -42,7 +42,7 @@ jobs:
 
       - name: Deploy to ECS
         run: |
-          FAMILY_NAME=slt-family:1
+          FAMILY_NAME=slt-family
           CLUSTER_NAME=slit
           SERVICE_NAME=service-1
           CONTAINER_NAME=catalog
